@@ -66,7 +66,7 @@ def get_birthdays(sess: requests.Session, unit_id: str) -> list:
 
 def get_todays_birthdays(birthday_data):
     birthdays_today = []
-    for member in birthday_data['results']:
+    for member in birthday_data.get('results', []):
         dob = datetime.fromisoformat(member['date_of_birth'])
         if dob.month == today_month and dob.day == today_day:
             birthdays_today.append(member)
