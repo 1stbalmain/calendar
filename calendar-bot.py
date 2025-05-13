@@ -52,6 +52,32 @@ def get_events(connection: requests.Session, member: str) -> list:
     event_data["results"] = sorted(event_data["results"], key=lambda x: datetime.fromisoformat(x["start_datetime"]))
     return event_data
 
+def get_units(sess: requests.Session) -> list:
+    url = "https://members.terrain.scouts.com.au/profiles"
+    data = sess.get(url).json()
+
+    return [prof["unit"]["id"] for prof in data["profiles"] if "unit" in prof]
+
+def get_birthdays(sess: requests.Session, unit_id: str) -> list:
+    url = f"https://members.terrain.scouts.com.au/units/{unit_id}/members"
+    data = sess.get(url).json()
+
+    return data
+
+def get_todays_birthdays(birthday_data):
+    birthdays_today = []
+    for member in birthday_data['results']:
+        dob = datetime.fromisoformat(member['date_of_birth'])
+        if dob.month == today_month and dob.day == today_day:
+            birthdays_today.append(member)
+    return birthdays_today
+
+def send_birthday_message(member, wh_url):
+    content = {
+        "body": f"Happy birthday, {member['first_name']} {member['last_name']}! 🎉 ",
+    }
+    jandi_details(content, wh_url)
+
 @lru_cache(maxsize=None)
 def get_event_info(connection: requests.Session, id: str):
     url = f"https://events.terrain.scouts.com.au/events/{id}"
@@ -265,6 +291,17 @@ section_colour = section_colours.get(section, section)
 
 session = generate_session(terrain_username, terrain_password)
 event_list = get_events(session, get_member_id(session))
+unit = get_units(session)[0]
+
+today = datetime.now(local_timezone)
+today_month = today.month
+today_day = today.day
+
+birthday_data = get_birthdays(session, unit)
+birthdays_today = get_todays_birthdays(birthday_data)
+
+for member in birthdays_today:
+    send_birthday_message(member, youth_wh_url)
 
 if 'results' not in event_list:
     print("Error getting event list")
