@@ -130,7 +130,7 @@ def location_append_w3w(loc_string):
         try:
             api_response = api.autosuggest(possible[0])
             print("what3words API response:\n" + json.dumps(api_response))
-        except:
+        except Exception:
             loc_string = loc_string.replace(possible[0], "(what3words error)")
             return loc_string
         
@@ -151,7 +151,7 @@ def event_date_filter(start_datetime):
     time_difference = start_datetime_local - datetime.now(local_timezone)
 
     if not timedelta(hours=0) <= time_difference <= timedelta(hours=24):
-        print(f"Event does not begin in the next 24 hours;")
+        print("Event does not begin in the next 24 hours;")
         return False
     
     return True
@@ -180,7 +180,8 @@ def send_message(event_id):
 
     if 'description' in event_info:
         description = event_info['description']
-    else: description = "No description given"
+    else:
+        description = "No description given"
 
     if event_info['invitees'][0]['invitee_type'] == 'unit':
         body_message = f"Upcoming event for {section_full_name}s"
@@ -265,7 +266,7 @@ section_colour = section_colours.get(section, section)
 session = generate_session(terrain_username, terrain_password)
 event_list = get_events(session, get_member_id(session))
 
-if not 'results' in event_list:
+if 'results' not in event_list:
     print("Error getting event list")
     quit()
 elif not event_list['results']:
@@ -284,7 +285,7 @@ for event in event_list['results']:
     else:
         print(f"Event {event['id']} does not fit criteria (datetime/unit)")
 
-if event_today == False:
+if event_today is False:
     if datetime.now().weekday() == meeting_weekday:
         print("No event on regular meeting day. Sending message.")
         jandi_none(youth_wh_url, True)
