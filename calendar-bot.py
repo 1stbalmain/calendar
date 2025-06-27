@@ -64,11 +64,11 @@ def get_birthdays(sess: requests.Session, unit_id: str) -> list:
 
     return data
 
-def get_todays_birthdays(birthday_data):
+def get_todays_birthdays(birthday_data, today_date):
     birthdays_today = []
     for member in birthday_data.get('results', []):
         dob = datetime.fromisoformat(member['date_of_birth'])
-        if dob.month == today_month and dob.day == today_day:
+        if dob.month == today_date.month and dob.day == today_date.day:
             birthdays_today.append(member)
     return birthdays_today
 
@@ -294,11 +294,9 @@ event_list = get_events(session, get_member_id(session))
 unit = get_units(session)[0]
 
 today = datetime.now(local_timezone)
-today_month = today.month
-today_day = today.day
 
 birthday_data = get_birthdays(session, unit)
-birthdays_today = get_todays_birthdays(birthday_data)
+birthdays_today = get_todays_birthdays(birthday_data, today)
 
 for member in birthdays_today:
     send_birthday_message(member, youth_wh_url)
